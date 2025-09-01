@@ -1,0 +1,19 @@
+#game {
+  width: 100%;
+  max-width: 800px;
+  height: 40vh;
+  min-height: 200px;
+  max-height: 400px;
+  background: #222;
+  overflow: hidden;
+  position: relative;
+  border: 4px solid #555;
+  margin: 30px auto;
+}
+body {
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+

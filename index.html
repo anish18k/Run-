@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Temple run 2D  – v4 (sound FX)</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:sans-serif}
+  body{background:#333;color:#fff;text-align:center}
+  #game{width:100%;max-width:800px;height:300px;background:#222;overflow:hidden;position:relative;border:4px solid #555;margin:30px auto}
+  #player{width:50px;height:50px;background:deepskyblue;position:absolute;bottom:0;left:50px;border-radius:10px}
+  .obstacle{position:absolute;bottom:0;background:crimson;border-radius:5px;animation:moveObstacle 3s linear forwards}
+  @keyframes moveObstacle{from{left:100%}to{left:-100px}}
+  #score{font-size:24px;margin-top:10px}
+  #startScreen,#gameOverScreen{position:absolute;width:100%;height:100%;background:rgba(0,0,0,.8);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:2}
+  button{margin-top:20px;padding:10px 20px;font-size:18px;cursor:pointer}
+  #gameOverScreen{display:none}
+</style>
+</head>
+<body>
+<h1>সস্তা Temple Run🤣🤣🤣 </h1>
+<div id="score">Score: 0</div>
+
+<div id="game">
+  <div id="player"></div>
+
+  <!--  AUDIO FX (replace the src with your own files/links) -->
+  <audio id="soundStart"   src="assets/start.mp3"     preload="auto"></audio>
+  <audio id="soundHit"     src="assets/hit.mp3"       preload="auto"></audio>
+  <audio id="soundGameOver"src="over.mp3"  preload="auto"></audio>
+
+  <!--   OVERLAYS   -->
+  <div id="startScreen">
+    <h2>Tap to Start</h2>
+    <button onclick="startGame()">Start Game</button>
+  </div>
+
+  <div id="gameOverScreen">
+    <h2>Game Over</h2>
+    <div id="finalScore"></div>
+    <button onclick="restartGame()">Restart</button>
+  </div>
+</div>
+
+<script>
+/* ---------- DOM SHORTCUTS ---------- */
+const player = document.getElementById("player"),
+      game   = document.getElementById("game"),
+      scoreTxt      = document.getElementById("score"),
+      startScreen   = document.getElementById("startScreen"),
+      gameOverScr   = document.getElementById("gameOverScreen"),
+      finalScoreTxt = document.getElementById("finalScore");
+
+/* ---------- SOUND HANDLES ---------- */
+const sfxStart    = document.getElementById("soundStart"),
+      sfxHit      = document.getElementById("soundHit"),
+      sfxGameOver = document.getElementById("soundGameOver");
+function play(sound){
+  sound.currentTime = 0;
+  sound.play().catch(()=>{});           // ignore autoplay errors
+}
+
+/* ---------- CONFIG ---------- */
+const PLAYER_W = 50;
+const gravity      = -0.52;  // hang-time
+const jumpVelocity = 12.3;
+let   gameSpeed    = 1.6,    // quick from the get-go
+      speedGain    = 0.15;   // ramps every 4 s
+
+/* ---------- STATE ---------- */
+let playerY=0, velY=0, isJumping=false, isGameOver=false, score=0;
+let obstacleTimer, scoreTimer, speedTimer;
+
+/* ---------- INPUT ---------- */
+document.addEventListener("keydown", e=>{ if(e.code==="Space") jump(); });
+document.addEventListener("click", jump);
+
+/* ---------- MAIN LOOP ---------- */
+function gameLoop(){
+  if(isGameOver) return;
+  velY += gravity;
+  playerY += velY;
+
+  if(playerY < 0){ playerY = 0; velY = 0; isJumping = false; }
+  player.style.bottom = playerY + "px";
+
+  requestAnimationFrame(gameLoop);
+}
+
+/* ---------- ACTIONS ---------- */
+function jump(){
+  if(isJumping || isGameOver) return;
+  velY = jumpVelocity;
+  isJumping = true;
+}
+
+function createObstacle(){
+  if(isGameOver) return;
+
+  const o  = document.createElement("div");
+  const h  = Math.random()*30+20, w = Math.random()*30+20;
+  o.classList.add("obstacle");
+  o.style.width  = w+"px";
+  o.style.height = h+"px";
+  o.style.animationDuration = (3/gameSpeed)+"s";
+  game.appendChild(o);
+
+  const chk = setInterval(()=>{
+    if(isGameOver){ clearInterval(chk); o.remove(); return; }
+    const oLeft = o.offsetLeft, pLeft = player.offsetLeft;
+    if(oLeft < pLeft+PLAYER_W && oLeft+w > pLeft && playerY < h){
+      play(sfxHit);              // 💥 collision sfx
+      gameOver();
+    }
+    if(oLeft < -w){ clearInterval(chk); o.remove(); }
+  },20);
+}
+
+/* ---------- GAME FLOW ---------- */
+function startGame(){
+  /* reset */
+  isGameOver = false; playerY = 0; velY = 0;
+  gameSpeed = 1.6; score = 0; scoreTxt.textContent = "Score: 0";
+  startScreen.style.display = "none";
+  gameOverScr.style.display = "none";
+  document.querySelectorAll(".obstacle").forEach(el=>el.remove());
+
+  play(sfxStart);                // ▶️ start sfx
+  requestAnimationFrame(gameLoop);
+  obstacleTimer = setInterval(createObstacle, 1000);
+  scoreTimer    = setInterval(()=>{ if(!isGameOver){ score++; scoreTxt.textContent="Score: "+score; } },500);
+  speedTimer    = setInterval(()=>{ if(!isGameOver) gameSpeed += speedGain; },4000);
+}
+
+function gameOver(){
+  if(isGameOver) return;
+  isGameOver = true;
+  play(sfxGameOver);             // ☠️ game-over sfx
+  clearInterval(obstacleTimer); clearInterval(scoreTimer); clearInterval(speedTimer);
+  gameOverScr.style.display = "flex";
+  finalScoreTxt.textContent = "Your Score: "+score;
+}
+
+function restartGame(){ startGame(); }
+</script>
+</body>
+</html>
+  <div class="watermark">Created by Anish</div>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">  
